@@ -1,0 +1,4 @@
+.parcel-cache
+node_modules
+client/assets/dist
+server/dist

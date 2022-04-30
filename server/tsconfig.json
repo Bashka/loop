@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+      "strict": true,
+      "outDir": "./dist",
+      "baseUrl": "./src",
+      "target": "esnext",
+      "module": "esnext",
+      "moduleResolution": "node",
+      "esModuleInterop": true,
+      "allowJs": true,
+      "resolveJsonModule": true,
+    },
+  }
+  
