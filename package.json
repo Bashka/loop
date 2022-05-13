@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "client:watch": "parcel watch ./client/src/index.ts --dist-dir ./client/assets/dist",
-    "server:watch": "tsc-watch  -p ./server --onSuccess 'node --experimental-modules --experimental-json-modules ./server/dist/index.js'"
+    "server:watch": "tsc-watch  -p ./server --onSuccess 'nodejs --experimental-modules --experimental-json-modules ./server/dist/index.js'"
   },
   "author": "",
   "license": "ISC",
@@ -13,6 +13,7 @@
     "@geckos.io/client": "^2.1.8",
     "@geckos.io/server": "^2.1.8",
     "@geckos.io/snapshot-interpolation": "^1.1.0",
+    "@geckos.io/typed-array-buffer-schema": "^1.2.0",
     "@types/debug": "^4.1.7",
     "@types/express": "^4.17.13",
     "@types/matter-js": "^0.17.7",
