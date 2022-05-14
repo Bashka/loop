@@ -10,8 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@geckos.io/client": "^2.1.8",
-    "@geckos.io/server": "^2.1.8",
+    "@geckos.io/client": "^2.2.0",
+    "@geckos.io/server": "^2.2.0",
     "@geckos.io/snapshot-interpolation": "^1.1.0",
     "@geckos.io/typed-array-buffer-schema": "^1.2.0",
     "@types/debug": "^4.1.7",
