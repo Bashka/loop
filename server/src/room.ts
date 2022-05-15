@@ -79,9 +79,12 @@ export class Room<W extends types.World<{ fps: number }>> {
 
   public readonly SI: SnapshotInterpolation;
 
-  public readonly onConnection = signal<ServerChannel>();
+  public readonly onConnection = signal<{ channel: ServerChannel }>();
 
-  public readonly onDisconnected = signal<ServerChannel>();
+  public readonly onDisconnect = signal<{
+    channel: ServerChannel;
+    reason: "closed" | "disconnected" | "failed";
+  }>();
 
   constructor(public readonly world: W, options: RoomOptions = {}) {
     this.server = options.server ?? geckos();
@@ -105,8 +108,10 @@ export class Room<W extends types.World<{ fps: number }>> {
       );
     });
     this.server.onConnection((channel) => {
-      this.onConnection(channel);
-      channel.onDisconnect(() => this.onDisconnected(channel));
+      this.onConnection({ channel });
+      channel.onDisconnect((reason) =>
+        this.onDisconnect({ channel, reason })
+      );
       this.emitInit(channel);
     });
     this.runner.onTick((d) => {

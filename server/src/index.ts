@@ -2,14 +2,10 @@ import path from "path";
 import { fileURLToPath } from "url";
 import http from "http";
 import express from "express";
-import geckos from "@geckos.io/server";
-import { SnapshotInterpolation } from "@geckos.io/snapshot-interpolation";
 import tileset from "./map/tileset.json" assert { type: "json" };
 import tilemap from "./map/tilemap.json" assert { type: "json" };
 import * as Tiled from "./tiled.js";
-import serializer from "./model/schema.js";
 import { Room } from "./room.js";
-import { IntervalRunner } from "./runner.js";
 import { World, PersonSprite, PersonAnimation } from "./model/index.js";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -185,26 +181,23 @@ const room = new Room(
     startHunter
   )
 );
-room.onConnection((channel) => {
-  const { id: channelId } = channel;
-  if (channelId === undefined) return;
-
-  console.log(`${channelId} connected`);
+room.onConnection(({ channel }) => {
+  if (!channel.id) return;
+  console.log(`${channel.id} connected`);
   const { world } = room;
   world.linkPlayer(
-    channelId,
+    channel.id,
     world.createPerson(world.state.persons.size > 0 ? startHunter : startVictim)
   );
-  channel.on("key", (data: any) => world.key(channelId, data));
+  channel.on("key", (data: any) => channel.id && world.key(channel.id, data));
 });
-room.onDisconnected((channel) => {
-  const { id: channelId } = channel;
-  if (channelId === undefined) return;
-
-  console.log(`${channelId} disconected`);
-  const playerPerson = room.world.getPlayerPerson(channelId);
-  room.world.unlinkPlayer(channelId);
-  if (playerPerson) room.world.removePerson(playerPerson);
+room.onDisconnect(({ channel }) => {
+  if (!channel.id) return;
+  console.log(`${channel.id} disconected`);
+  const { world } = room;
+  const playerPerson = world.getPlayerPerson(channel.id);
+  world.unlinkPlayer(channel.id);
+  if (playerPerson) world.removePerson(playerPerson);
 });
 room.server.addServer(server);
 room.runner.play();
