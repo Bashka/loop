@@ -15,7 +15,7 @@ export default new Model(
     time: uint64,
     state: {
       persons: [
-        BufferSchema.schema("person", {
+        BufferSchema.schema("persons", {
           id,
           x: int64,
           y: int64,

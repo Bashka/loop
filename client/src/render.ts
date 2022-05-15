@@ -31,23 +31,21 @@ export class Render<S extends State, V = any> {
   ) {}
 
   add(states: S[]) {
-    this.onAdd(
-      states.reduce<V[]>((created, state) => {
-        if (this.views[state.id]) return created;
-        this.views[state.id] = this.construct(state);
-        return [...created, this.views[state.id]];
-      }, [])
-    );
+    const added = states.reduce<V[]>((created, state) => {
+      if (this.views[state.id]) return created;
+      this.views[state.id] = this.construct(state);
+      return [...created, this.views[state.id]];
+    }, []);
+    if (added.length > 0) this.onAdd(added);
   }
 
   delete(ids: string[]) {
-    this.onDelete(
-      ids.reduce<V[]>((deleted, id) => {
-        const view = this.views[id];
-        delete this.views[id];
-        return view ? [...deleted, view] : deleted;
-      }, [])
-    );
+    const deleted = ids.reduce<V[]>((deleted, id) => {
+      const view = this.views[id];
+      delete this.views[id];
+      return view ? [...deleted, view] : deleted;
+    }, []);
+    if (deleted.length > 0) this.onDelete(deleted);
   }
 
   update(states: S[]) {

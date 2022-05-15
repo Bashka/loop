@@ -2,7 +2,7 @@ import geckos from "@geckos.io/client";
 import { SnapshotInterpolation } from "@geckos.io/snapshot-interpolation";
 import * as PixiJS from "pixi.js";
 import serializer from "../../server/src/model/schema";
-import { playAnimation, keyboard, signal } from "./utils";
+import { playAnimation, keyboard } from "./utils";
 import { Stage } from "./render";
 import { personView, coinView } from "./view";
 
