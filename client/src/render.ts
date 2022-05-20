@@ -1,5 +1,38 @@
+import { ClientChannel } from "@geckos.io/client";
 import { SnapshotInterpolation } from "@geckos.io/snapshot-interpolation";
-import { signal } from "./utils";
+import { Model as Serializer } from "@geckos.io/typed-array-buffer-schema";
+import { signal, Signal } from "../../server/src/signal";
+
+interface Animator {
+  onFrame: Signal<null>;
+  play(): this;
+  stop(): this;
+}
+
+export class RequestFrameAnimator implements Animator {
+  protected _isStoped = true;
+
+  public readonly onFrame = signal<null>();
+
+  protected animate() {
+    if (this._isStoped) return;
+    requestAnimationFrame(this.animate.bind(this));
+    this.onFrame(null);
+  }
+
+  play() {
+    if (!this._isStoped) return this;
+    this._isStoped = false;
+    this.animate();
+    return this;
+  }
+
+  stop() {
+    if (this._isStoped) return this;
+    this._isStoped = true;
+    return this;
+  }
+}
 
 export interface State {
   id: string;
@@ -62,16 +95,62 @@ export class Render<S extends State, V = any> {
   }
 }
 
-export interface StageView {
-  render: Render<any, any>;
-  SIDeep: string | null;
+export interface View<S extends State, V = any> {
+  render: Render<S, V>;
+  SIDeep?: string;
+}
+
+export interface StageOptions {
+  channel: ClientChannel;
+  SI?: SnapshotInterpolation;
+  serializer: Serializer;
+  fps?: number;
+  animator?: Animator;
 }
 
 export class Stage<K extends string> {
+  public readonly channel: ClientChannel;
+
+  public readonly SI: SnapshotInterpolation;
+
+  public readonly serializer: Serializer;
+
+  public readonly animator: Animator;
+
+  public readonly onAdd = signal<any[]>();
+
+  public readonly onDelete = signal<any[]>();
+
   constructor(
-    public readonly SI: SnapshotInterpolation,
-    public readonly views: Record<K, StageView>
-  ) {}
+    public readonly views: Record<K, View<any, any>>,
+    options: StageOptions
+  ) {
+    this.channel = options.channel;
+    this.serializer = options.serializer;
+    this.SI = options.SI ?? new SnapshotInterpolation(options.fps ?? 50);
+    this.animator = options.animator ?? new RequestFrameAnimator();
+
+    for (const name in views) {
+      views[name].render.onAdd((created) => this.onAdd(created));
+      views[name].render.onDelete((created) => this.onDelete(created));
+    }
+    this.channel.on(
+      "patch",
+      (patch) => typeof patch === "object" && this.patch(patch)
+    );
+    this.channel.onRaw(
+      (buffer) =>
+        buffer instanceof ArrayBuffer &&
+        this.SI.snapshot.add(this.serializer.fromBuffer(buffer))
+    );
+    this.animator
+      .play()
+      .onFrame(() =>
+        this.interpolate(
+          (this.serializer.schema.struct as { state: object }).state
+        )
+      );
+  }
 
   hasView(key: any): key is K {
     return (
@@ -100,11 +179,8 @@ export class Stage<K extends string> {
     });
     return this;
   }
+}
 
-  forEarch(cb: (view: StageView, type: K) => any) {
-    for (const type in this.views) {
-      cb(this.views[type], type);
-    }
-    return this;
-  }
+export interface Room {
+  onCreated: Signal<Stage<any> | Error>;
 }

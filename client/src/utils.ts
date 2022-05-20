@@ -1,25 +1,23 @@
 import * as PixiJS from "pixi.js";
+import { signal } from "../../server/src/signal";
 import { Keyboard as YandeuKeyboard } from "@yandeu/keyboard";
 
-export function signal<T>(listener: (data: T) => unknown = () => {}) {
-  return (d: typeof listener | T) =>
-    typeof d === "function" ? (listener = d as typeof listener) : listener(d);
+export interface Animation {
+  speed: number;
+  frames: [number, number, number, number][];
+}
+
+export interface Sprite {
+  url: string;
+  animations: {
+    [animation: number]: Animation;
+  };
 }
 
 export const playAnimation =
   (
     resources: Record<number, { texture?: PixiJS.Texture }>,
-    sprites: {
-      [sprite: number]: {
-        url: string;
-        animations: {
-          [animation: number]: {
-            speed: number;
-            frames: [number, number, number, number][];
-          };
-        };
-      };
-    }
+    sprites: { [sprite: number]: Sprite }
   ) =>
   (sprite: number, animation: number): PixiJS.AnimatedSprite => {
     const texture = resources[sprite].texture;
